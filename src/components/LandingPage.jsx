@@ -90,7 +90,7 @@ export default function LandingPage({ onEnter }) {
   const [formData, setFormData] = useState({
     nombre: '',
     tipo: 'cati',
-    cadena: 'academia',
+    cadena: 'tic',
     region: '',
     lat: '',
     lng: '',
@@ -134,7 +134,7 @@ export default function LandingPage({ onEnter }) {
       setFormData({
         nombre: '',
         tipo: 'cati',
-        cadena: 'academia',
+        cadena: 'tic',
         region: '',
         lat: '',
         lng: '',
@@ -771,16 +771,16 @@ export default function LandingPage({ onEnter }) {
                     value={formData.cadena} 
                     onChange={e => setFormData({...formData, cadena: e.target.value})}
                   >
-                    <option value="agroindustrial">Agroindustrial / Alimentario</option>
-                    <option value="pesquero">Pesquero / Acuícola</option>
-                    <option value="forestal">Forestal / Madera</option>
-                    <option value="indumentaria">Cuero, Calzado y Textil</option>
-                    <option value="productivo">Productivo Multisectorial</option>
-                    <option value="materiales">Materiales / Minería / Energía</option>
-                    <option value="transversal">Logística / Marketing / Creativas</option>
-                    <option value="academia">Academia / OTT / I+D</option>
-                    <option value="startup">Startups & Aceleradoras</option>
-                    <option value="soporte">Entidades de Soporte (Estado)</option>
+                    <option value="agro_ivai">Agroindustria & Superfoods</option>
+                    <option value="pesca_ivai">Acuicultura & Pesca</option>
+                    <option value="textil_ivai">Textil & Camélidos</option>
+                    <option value="forestal_ivai">Forestal & Madera</option>
+                    <option value="mineria_ivai">Minería & Proveedores</option>
+                    <option value="turismo_ivai">Turismo & Economía Creativa</option>
+                    <option value="salud">Salud & Biotecnología</option>
+                    <option value="tic">TIC & Digital</option>
+                    <option value="logistica">Logística & Supply Chain</option>
+                    <option value="multisectorial">Multisectorial / Varios</option>
                   </select>
                 </div>
                 <div className="form-group">
