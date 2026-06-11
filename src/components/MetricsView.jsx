@@ -816,18 +816,7 @@ export default function MetricsView({ cites, activeType, onTypeChange, cadenas }
         }
       `}</style>
 
-      {/* Main expanded wrapper (widths configured for widescreen breathing room) */}
-      <div 
-        style={{ 
-          maxWidth: '1600px', // Widened from 1200px to 1600px to give ample space
-          width: '100%',
-          margin: '110px auto 40px', // Shift under header
-          paddingLeft: '340px', // Sidebar safety
-          paddingRight: '40px', // Added symmetric padding for the right side
-          boxSizing: 'border-box'
-        }}
-        className="dashboard-wrapper"
-      >
+      <div className="dashboard-wrapper">
         {/* Soft UI Alert Style Legend */}
         <div style={{
           background: 'rgba(212, 175, 55, 0.03)',

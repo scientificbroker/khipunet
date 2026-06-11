@@ -49,6 +49,9 @@ export default function NetworkGraph({
     setAccOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const [mobileLeftPanelOpen, setMobileLeftPanelOpen] = useState(false);
+  const [mobileRightPanelOpen, setMobileRightPanelOpen] = useState(false);
+
   // 1. Estados de Configuración de Gephi
   const [physicsRunning, setPhysicsRunning] = useState(true);
   const [layoutMode, setLayoutMode] = useState('forceAtlas2'); // forceAtlas2 | fruchterman | circular | concentric
@@ -622,7 +625,7 @@ export default function NetworkGraph({
     <div className="gephi-workspace">
       
       {/* 1. COLUMNA IZQUIERDA: Apariencia & Distribución en Acordeón Colapsable */}
-      <aside className="gephi-panel gephi-panel-left">
+      <aside className={`gephi-panel gephi-panel-left ${mobileLeftPanelOpen ? 'mobile-open' : ''}`}>
         <div className="gephi-accordion">
           
           {/* ACORDEÓN 1: Filtros del Ecosistema */}
@@ -911,6 +914,30 @@ export default function NetworkGraph({
 
       {/* 2. ÁREA CENTRAL: Canvas + Filtro de Grado Inferior */}
       <main className="gephi-center-area">
+        {/* Controles flotantes móviles para el grafo */}
+        <div className="gephi-mobile-controls">
+          <button
+            type="button"
+            className={`gephi-mobile-btn ${mobileLeftPanelOpen ? 'active' : ''}`}
+            onClick={() => {
+              setMobileLeftPanelOpen(!mobileLeftPanelOpen);
+              setMobileRightPanelOpen(false);
+            }}
+          >
+            ⚙️ {mobileLeftPanelOpen ? 'Cerrar' : 'Ajustes'}
+          </button>
+          <button
+            type="button"
+            className={`gephi-mobile-btn ${mobileRightPanelOpen ? 'active' : ''}`}
+            onClick={() => {
+              setMobileRightPanelOpen(!mobileRightPanelOpen);
+              setMobileLeftPanelOpen(false);
+            }}
+          >
+            📊 {mobileRightPanelOpen ? 'Cerrar' : 'Métricas'}
+          </button>
+        </div>
+
         <div className="gephi-canvas-container" ref={containerRef}>
           <canvas
             ref={canvasRef}
@@ -949,7 +976,7 @@ export default function NetworkGraph({
       </main>
 
       {/* 3. COLUMNA DERECHA: Estadísticas de Red */}
-      <aside className="gephi-panel gephi-panel-right">
+      <aside className={`gephi-panel gephi-panel-right ${mobileRightPanelOpen ? 'mobile-open' : ''}`}>
         <h4 className="section-title">Estadísticas</h4>
         
         <div className="stats-list">

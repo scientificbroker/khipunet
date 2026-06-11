@@ -239,6 +239,7 @@ export default function MapView({
 
   const [mapEngine, setMapEngine] = useState('google'); // google | leaflet
   const [basemap, setBasemap] = useState('dark'); // dark | satellite | terrain | roadmap
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   
   // Acordeones colapsables en la barra lateral izquierda del mapa
   const [accOpen, setAccOpen] = useState({
@@ -720,7 +721,7 @@ export default function MapView({
       </div>
 
       {/* 2. Capas Cartográficas & Filtros (Control Panel Lateral Izquierdo en Acordeón) */}
-      <div className="gis-layers-panel">
+      <div className={`gis-layers-panel ${mobileFiltersOpen ? 'mobile-open' : ''}`}>
         <div className="gephi-accordion">
           
           {/* ACORDEÓN 1: Filtros del Ecosistema */}
@@ -890,6 +891,14 @@ export default function MapView({
 
       {/* 3. Barra de Herramientas GIS */}
       <div className="gis-tools-bar">
+        <button
+          type="button"
+          className={`tool-btn mobile-only-btn ${mobileFiltersOpen ? 'active' : ''}`}
+          title="Filtros y Capas"
+          onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+        >
+          🔍 {mobileFiltersOpen ? 'Cerrar' : 'Filtros'}
+        </button>
         <button
           type="button"
           className="tool-btn"

@@ -257,17 +257,7 @@ export default function DirectoryView({ cites, cadenaById, selected, onSelect })
       `}</style>
 
       {/* Expanded directory container matching metrics widescreen */}
-      <div 
-        style={{ 
-          maxWidth: '1600px', // Matches Metrics widescreen width
-          width: '100%',
-          margin: '110px auto 40px', // Shift under top tabs
-          paddingLeft: '340px', // Sidebar safety margin
-          paddingRight: '40px', // Symmetric right margin
-          boxSizing: 'border-box'
-        }}
-        className="dashboard-wrapper"
-      >
+      <div className="dashboard-wrapper">
         <div className="directory-card">
           
           {/* Card Header (Controls: title, search input, row counts, export CSV) */}
