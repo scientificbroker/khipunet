@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import db from '../data/cites.json';
+import { supabase } from '../supabaseClient';
 
 const tipoLabels = {
   publico: 'CITE Público',
@@ -98,41 +99,55 @@ export default function LandingPage({ onEnter }) {
     web: '',
     contactoInfo: ''
   });
-  const [generatedJson, setGeneratedJson] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    const cleanName = formData.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const id = `${formData.tipo}-${cleanName.replace(/[^a-z0-9]/g, '-')}`;
+    setIsSubmitting(true);
     
-    const entry = {
-      id,
-      nombre: formData.nombre,
-      tipo: formData.tipo,
-      cadena: formData.cadena,
-      region: formData.region,
-      lat: parseFloat(formData.lat) || 0,
-      lng: parseFloat(formData.lng) || 0,
-      contacto: {
-        telefono: formData.contactoInfo || "Ver web",
-        email: formData.contactoInfo || "Ver web",
-        web: formData.web || "https://www.itp.gob.pe"
-      },
-      descripcion: formData.descripcion,
-      servicios: formData.servicios ? formData.servicios.split(',').map(s => s.trim()).filter(Boolean) : [],
-      ambito: [formData.region],
-      fuente: "Registro Externo KhipuNet",
-      estado: "operativo"
-    };
+    const { error } = await supabase
+      .from('solicitudes')
+      .insert([
+        {
+          nombre: formData.nombre,
+          tipo_actor: formData.tipo,
+          cadena: formData.cadena,
+          region: formData.region,
+          lat: parseFloat(formData.lat) || 0,
+          lng: parseFloat(formData.lng) || 0,
+          descripcion: formData.descripcion,
+          servicios: formData.servicios,
+          web: formData.web,
+          contacto: formData.contactoInfo,
+          estado: 'pendiente'
+        }
+      ]);
 
-    setGeneratedJson(JSON.stringify(entry, null, 2));
-    setShowSuccessModal(true);
-    
-    // Desplazarse levemente al cuadro del JSON generado para mejor feedback visual
-    const element = document.querySelector('.json-textarea');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    setIsSubmitting(false);
+
+    if (error) {
+      alert('Error al enviar la solicitud: ' + error.message);
+    } else {
+      setShowSuccessModal(true);
+      // Reset form
+      setFormData({
+        nombre: '',
+        tipo: 'cati',
+        cadena: 'academia',
+        region: '',
+        lat: '',
+        lng: '',
+        descripcion: '',
+        servicios: '',
+        web: '',
+        contactoInfo: ''
+      });
+      
+      const element = document.querySelector('.json-generation-panel');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -855,29 +870,26 @@ export default function LandingPage({ onEnter }) {
                 </div>
               </div>
 
-              <button type="submit" className="btn-register-submit" style={{ boxShadow: '0 4px 15px rgba(212,175,55,0.15)' }}>
-                Generar Entrada de Datos ➔
+              <button type="submit" className="btn-register-submit" style={{ boxShadow: '0 4px 15px rgba(212,175,55,0.15)' }} disabled={isSubmitting}>
+                {isSubmitting ? 'Enviando...' : 'Enviar Solicitud ➔'}
               </button>
             </form>
 
-            {/* Panel de Visualización JSON generado */}
-            <div className="json-generation-panel" style={{ display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ margin: '0 0 10px', fontSize: '0.9rem', color: '#fff', fontWeight: 600 }}>
-                💾 Entrada de Datos Generada (Formato JSON)
-              </h3>
-              <p style={{ fontSize: '0.72rem', color: 'var(--muted)', margin: '0 0 14px', lineHeight: '1.4' }}>
-                Completa el formulario de la izquierda. Al presionar el botón, se generará la entrada formateada lista para ser agregada al archivo de base de datos oficial.
-              </p>
-              <textarea 
-                className="json-textarea" 
-                readOnly 
-                value={generatedJson} 
-                placeholder="El código JSON oficial aparecerá aquí una vez que completes el formulario..." 
-                style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.08)' }}
-              />
-              {showSuccessModal && (
-                <div className="success-toast">
-                  <span>✅ <b>¡Registro Generado!</b> Copia el fragmento JSON de arriba y envíalo al administrador del portal KhipuNet para incorporarlo al mapa.</span>
+            {/* Panel de Visualización Supabase */}
+            <div className="json-generation-panel" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '2rem' }}>
+              {!showSuccessModal ? (
+                <>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>☁️</div>
+                  <h3 style={{ margin: '0 0 10px', fontSize: '1.2rem', color: '#fff', fontWeight: 600 }}>
+                    Conexión Directa a la Nube
+                  </h3>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: '0 0 14px', lineHeight: '1.5' }}>
+                    Completa el formulario de la izquierda. Al presionar "Enviar Solicitud", tus datos serán enviados de forma segura a nuestra base de datos para ser revisados por el equipo de KhipuNet.
+                  </p>
+                </>
+              ) : (
+                <div className="success-toast" style={{ position: 'relative', bottom: 'auto', left: 'auto', transform: 'none', width: '100%' }}>
+                  <span>✅ <b>¡Solicitud Enviada!</b> Tu información ha sido recibida correctamente y se encuentra en estado de revisión. Pronto aparecerá en el mapa oficial.</span>
                 </div>
               )}
             </div>

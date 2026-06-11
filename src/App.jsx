@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
-import db from './data/cites.json';
+import { useMemo, useState, useEffect } from 'react';
+import dbData from './data/cites.json';
+import { supabase } from './supabaseClient';
+import AdminPanel from './components/AdminPanel.jsx';
 import MapView from './components/MapView.jsx';
 import NetworkGraph from './components/NetworkGraph.jsx';
 import MetricsView from './components/MetricsView.jsx';
@@ -12,27 +14,69 @@ const norm = (s) =>
   (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 export default function App() {
+  // Enrutamiento minimalista: Si la URL es /admin, mostramos solo el panel
+  if (window.location.pathname === '/admin') {
+    return <AdminPanel onExit={() => window.location.href = '/'} />;
+  }
+
+  // Estado que combina JSON local con Base de Datos en la Nube
+  const [citesList, setCitesList] = useState(dbData.cites);
+  const [isSyncing, setIsSyncing] = useState(true);
+
+  useEffect(() => {
+    const fetchApproved = async () => {
+      const { data, error } = await supabase
+        .from('solicitudes')
+        .select('*')
+        .eq('estado', 'aprobado');
+      
+      if (!error && data && data.length > 0) {
+        // Transformar formato Supabase al formato esperado por el frontend
+        const nuevosNodos = data.map(d => ({
+          id: d.id,
+          nombre: d.nombre,
+          tipo: d.tipo_actor,
+          cadena: d.cadena,
+          region: d.region,
+          lat: d.lat,
+          lng: d.lng,
+          contacto: { telefono: d.contacto, email: d.contacto, web: d.web },
+          descripcion: d.descripcion,
+          servicios: d.servicios ? d.servicios.split(',').map(s => s.trim()) : [],
+          ambito: [d.region],
+          fuente: "Registro KhipuNet (Nube)",
+          estado: "operativo"
+        }));
+        
+        // Unir datos estáticos con los dinámicos de la nube
+        setCitesList([...dbData.cites, ...nuevosNodos]);
+      }
+      setIsSyncing(false);
+    };
+
+    fetchApproved();
+  }, []);
   const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('mapa'); // mapa | red | metricas | directorio
   const [tipo, setTipo] = useState('todos'); // todos | publico | privado | universidad | incubadora | gobierno
-  const [cadenasOn, setCadenasOn] = useState(() => new Set(db.cadenas.map((c) => c.id)));
+  const [cadenasOn, setCadenasOn] = useState(() => new Set(dbData.cadenas.map((c) => c.id)));
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
 
   const activeCite = useMemo(() => {
-    return db.cites.find((c) => c.id === (hoveredId || selectedId)) || null;
-  }, [hoveredId, selectedId]);
+    return citesList.find((c) => c.id === (hoveredId || selectedId)) || null;
+  }, [citesList, hoveredId, selectedId]);
 
   const cadenaById = useMemo(
-    () => Object.fromEntries(db.cadenas.map((c) => [c.id, c])),
+    () => Object.fromEntries(dbData.cadenas.map((c) => [c.id, c])),
     []
   );
 
   // Filtrado global coordinado que afecta a todas las vistas
   const visibles = useMemo(() => {
     const q = norm(query);
-    return db.cites.filter((c) => {
+    return citesList.filter((c) => {
       // Filtrar nodos sin georreferenciación en la pestaña de mapa,
       // pero en las demás vistas sí los mostraremos (en el grafo flotan libres)
       if (activeTab === 'mapa' && (c.lat == null || c.lng == null)) return false;
@@ -56,11 +100,11 @@ export default function App() {
       }
       return true;
     });
-  }, [tipo, cadenasOn, query, activeTab]);
+  }, [citesList, tipo, cadenasOn, query, activeTab]);
 
   const selected = useMemo(
-    () => db.cites.find((c) => c.id === selectedId) || null,
-    [selectedId]
+    () => citesList.find((c) => c.id === selectedId) || null,
+    [citesList, selectedId]
   );
 
   const toggleCadena = (id) => {
@@ -109,7 +153,7 @@ export default function App() {
           cadenaById={cadenaById}
           selected={selected}
           onSelect={setSelectedId}
-          cadenas={db.cadenas}
+          cadenas={dbData.cadenas}
           cadenasOn={cadenasOn}
           onToggleCadena={toggleCadena}
           tipo={tipo}
@@ -127,7 +171,7 @@ export default function App() {
           cadenaById={cadenaById}
           selected={selected}
           onSelect={setSelectedId}
-          cadenas={db.cadenas}
+          cadenas={dbData.cadenas}
           cadenasOn={cadenasOn}
           onToggleCadena={toggleCadena}
           tipo={tipo}
@@ -141,10 +185,10 @@ export default function App() {
 
       {activeTab === 'metricas' && (
         <MetricsView
-          cites={db.cites}
+          cites={citesList}
           activeType={tipo}
           onTypeChange={setTipo}
-          cadenas={db.cadenas}
+          cadenas={dbData.cadenas}
           cadenaById={cadenaById}
         />
       )}
@@ -182,7 +226,7 @@ export default function App() {
       {/* Panel de Filtros Globales (Barra Lateral Izquierda) - Oculto en Grafo Red */}
       {activeTab !== 'red' && activeTab !== 'mapa' && (
         <FilterBar
-          cadenas={db.cadenas}
+          cadenas={dbData.cadenas}
           cadenasOn={cadenasOn}
           onToggleCadena={toggleCadena}
           tipo={tipo}
@@ -195,8 +239,9 @@ export default function App() {
       {/* Estadísticas de conteo inferiores (Ocultas en dashboard para evitar traslapes) */}
       {activeTab !== 'metricas' && activeTab !== 'directorio' && (
         <div className="stats">
-          Mostrando <b>{visibles.length}</b> de {db.cites.length} nodos · corte{' '}
-          {db.meta.fecha_corte}
+          Mostrando <b>{visibles.length}</b> de {citesList.length} nodos 
+          {isSyncing ? ' (Sincronizando nube...)' : ''} · corte{' '}
+          {dbData.meta.fecha_corte}
         </div>
       )}
 
