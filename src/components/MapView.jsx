@@ -245,7 +245,8 @@ export default function MapView({
   const [accOpen, setAccOpen] = useState({
     filters: true,
     layers: true,
-    guide: false
+    guide: false,
+    legend: false
   });
 
   const toggleAccordion = (key) => {
@@ -882,6 +883,40 @@ export default function MapView({
                   <li><b>Regla:</b> Actívala en la barra superior y haz clic en dos puntos del mapa para medir distancias en km.</li>
                   <li><b>Motores:</b> Alterna entre Google Maps y Leaflet desde el selector superior.</li>
                 </ul>
+              </div>
+            )}
+          </div>
+
+          {/* ACORDEÓN 4: Leyenda Cartográfica */}
+          <div className="accordion-item">
+            <button
+              type="button"
+              className={`accordion-header ${accOpen.legend ? 'open' : ''}`}
+              onClick={() => toggleAccordion('legend')}
+            >
+              <span>📊 4. Leyenda</span>
+              <span className="arrow">{accOpen.legend ? '▼' : '▶'}</span>
+            </button>
+            {accOpen.legend && (
+              <div className="accordion-content" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="legend-section-title" style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 'bold' }}>Tipos de Actor</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('publico')} CITE Público</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('privado')} CITE Privado</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('universidad')} Universidad / OTT</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('empresa')} Empresa Innovadora</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('startup')} Startup Tecnológica</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('incubadora')} Incubadora / Aceleradora</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('cati')} Red CATI</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('coworking')} Espacio de Coworking</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>{renderLegendIcon('gobierno')} Soporte / Estado</div>
+                
+                <div className="legend-section-title" style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 'bold', marginTop: '6px' }}>Enlaces</div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>
+                  <span className="legend-line active" style={{ width: '18px', height: '2px', background: 'var(--oro)', display: 'inline-block' }} /> Conexión Activa
+                </div>
+                <div className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '0.72rem', gap: '8px', color: '#cbd5e1' }}>
+                  <span className="legend-line" style={{ width: '18px', height: '2px', borderTop: '2px dashed rgba(255,255,255,0.4)', display: 'inline-block' }} /> Enlace Khipu
+                </div>
               </div>
             )}
           </div>
